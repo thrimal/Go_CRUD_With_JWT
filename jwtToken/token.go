@@ -1,7 +1,6 @@
 package jwtToken
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
@@ -9,33 +8,29 @@ import (
 )
 
 var Tokens string
-var key string
+var key []byte
 
-func GenerateJWT(ctx *fiber.Ctx) (error, error) {
-	// Create token
+func GenerateJWT(ctx *fiber.Ctx) error {
+	// Create and sign the token
 	token := jwt.New(jwt.SigningMethodHS256)
-
-	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
 	claims["name"] = "Thrimal 1234"
 	claims["admin"] = true
 	claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
 
-	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte(key))
+	t, err := token.SignedString(key)
 	if err != nil {
-		return ctx.SendStatus(fiber.StatusInternalServerError), nil
+		return ctx.Status(fiber.StatusInternalServerError).SendString("Internal Server Error")
 	}
+
+	// Update Tokens variable (if needed)
 	Tokens = t
-	return ctx.JSON(fiber.Map{"Tokens": &t}), nil
+
+	return ctx.JSON(fiber.Map{"Tokens": t})
 }
 
 func IsAuthorized() fiber.Handler {
-	return jwtware.New(jwtware.Config{SigningKey: []byte(key)})
+	return jwtware.New(jwtware.Config{SigningKey: key})
 }
 
-func ExtractToken(ctx *fiber.Ctx) error {
-	token :=Tokens
-	fmt.Println(token)
-	return ctx.JSON(token)
-}
+

@@ -4,14 +4,15 @@ import (
 	"JWTWithGORM/database"
 	"JWTWithGORM/jwtToken"
 	"JWTWithGORM/models"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 )
 
 func GoPost(ctx *fiber.Ctx) error {
 	cust := new(models.Customer)
-	_, er := jwtToken.GenerateJWT(ctx)
+	er := jwtToken.GenerateJWT(ctx)
 	if er != nil {
-		panic(er.Error())
+		fmt.Println(er)
 	}
 	if err := ctx.BodyParser(cust); err != nil {
 		return err
@@ -21,10 +22,10 @@ func GoPost(ctx *fiber.Ctx) error {
 }
 
 func GoGetAll(ctx *fiber.Ctx) error {
-	token := jwtToken.ExtractToken(ctx)
+	//token := jwtToken.ExtractToken(ctx)
 	var customers []models.Customer
 	database.DBConn.Find(&customers)
-	ctx.JSON(token)
+	//ctx.JSON(token)
 	return ctx.Status(fiber.StatusOK).JSON(customers)
 }
 
